@@ -1,12 +1,20 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import FeaturesSection from "@/components/FeaturesSection";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background bg-gradient-subtle">
+      <Navbar />
+      <HeroSection />
+      <FeaturesSection />
+      <footer className="py-12 px-6 border-t border-border">
+        <div className="container max-w-5xl mx-auto text-center">
+          <p className="text-sm text-muted-foreground">
+            Skill Signal — your skills deserve to be seen.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
