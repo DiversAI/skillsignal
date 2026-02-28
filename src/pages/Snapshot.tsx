@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowLeft, RotateCcw, Copy, Check, Wand2, Loader2, Briefcase, TrendingUp, GraduationCap, MapPin, Target, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Sparkles, ArrowLeft, RotateCcw, Copy, Check, Wand2, Loader2, Briefcase, TrendingUp, GraduationCap, MapPin, Target, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Rocket, DollarSign, Clock, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
@@ -46,6 +46,21 @@ interface Job {
   why_youre_ready: string;
 }
 
+interface Venture {
+  name: string;
+  pitch: string;
+  model: string;
+  startup_cost: string;
+  time_to_revenue: string;
+  readiness_percentage: number;
+  skills_matched: string[];
+  skill_gaps: SkillGap[];
+  first_steps: string[];
+  why_youre_ready: string;
+}
+
+type PathTrack = "jobs" | "entrepreneur";
+
 const difficultyConfig = {
   easy: { label: "Quick Win", color: "text-success", bg: "bg-success/15" },
   moderate: { label: "1-3 Months", color: "text-warning", bg: "bg-warning/15" },
@@ -63,6 +78,10 @@ const Snapshot = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [expandedJob, setExpandedJob] = useState<number | null>(null);
+  const [ventures, setVentures] = useState<Venture[]>([]);
+  const [loadingVentures, setLoadingVentures] = useState(false);
+  const [expandedVenture, setExpandedVenture] = useState<number | null>(null);
+  const [activeTrack, setActiveTrack] = useState<PathTrack>("jobs");
 
   useEffect(() => {
     const stored = localStorage.getItem("skillSignalResponses");
@@ -88,6 +107,10 @@ const Snapshot = () => {
 
     if (jobs.length > 0) {
       text += "\n\n---\n\n🎯 Job Matches & Skill Gap Analysis\n" + jobs.map((j) => `• ${j.title} at ${j.company_type} (${j.match_percentage}% match) — ${j.salary_range}\n  Skills matched: ${j.skills_matched.join(", ")}\n  Gaps: ${j.skill_gaps.map(g => `${g.name} (${g.difficulty})`).join(", ")}`).join("\n");
+    }
+
+    if (ventures.length > 0) {
+      text += "\n\n---\n\n🚀 Entrepreneur Track\n" + ventures.map((v) => `• ${v.name} (${v.readiness_percentage}% ready) — ${v.model} | ${v.startup_cost}\n  ${v.pitch}\n  First steps: ${v.first_steps.join("; ")}`).join("\n");
     }
 
     await navigator.clipboard.writeText(`✨ My Skill Snapshot\n\n${text}`);
@@ -159,7 +182,40 @@ const Snapshot = () => {
     }
   };
 
+  const handleMatchVentures = async () => {
+    setLoadingVentures(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("match-ventures", {
+        body: { skills, careers },
+      });
+      if (error) throw error;
+      if (data?.ventures) {
+        setVentures(data.ventures);
+        toast.success("Your venture ideas are ready. Time to build.");
+      } else {
+        throw new Error("No ventures returned");
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Something went wrong — but you've got this. Try again.");
+    } finally {
+      setLoadingVentures(false);
+    }
+  };
+
+  const handleLoadTrack = (track: PathTrack) => {
+    setActiveTrack(track);
+    if (track === "jobs" && jobs.length === 0 && !loadingJobs) {
+      handleMatchJobs();
+    } else if (track === "entrepreneur" && ventures.length === 0 && !loadingVentures) {
+      handleMatchVentures();
+    }
+  };
+
   if (responses.length === 0) return null;
+
+  const hasPathData = jobs.length > 0 || ventures.length > 0;
+  const showPathSection = careers.length > 0 && (hasPathData || loadingJobs || loadingVentures);
 
   return (
     <div className="min-h-screen bg-background">
@@ -341,165 +397,314 @@ const Snapshot = () => {
             )}
           </AnimatePresence>
 
-          {/* Match Jobs CTA */}
-          {careers.length > 0 && jobs.length === 0 && (
+          {/* Path CTA — Choose Your Track */}
+          {careers.length > 0 && !hasPathData && !loadingJobs && !loadingVentures && (
             <motion.div className="mt-8" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-              <Button
-                onClick={handleMatchJobs}
-                disabled={loadingJobs}
-                className="w-full bg-card border-2 border-primary/40 text-foreground font-semibold px-6 py-6 rounded-xl hover:border-primary hover:scale-[1.02] transition-all duration-200 text-base glow-primary disabled:opacity-60 disabled:hover:scale-100"
-              >
-                {loadingJobs ? (
-                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Finding real job matches...</>
-                ) : (
-                  <><Target className="w-5 h-5 mr-2" />Find Real Jobs + Skill Gap Analysis</>
-                )}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center mt-3">5 realistic job options with a breakdown of what you have vs. what you'd need</p>
+              <p className="text-sm font-semibold text-foreground text-center mb-4">Choose your path</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={() => handleLoadTrack("jobs")}
+                  disabled={loadingJobs}
+                  className="bg-card border-2 border-primary/40 text-foreground font-semibold px-4 py-6 rounded-xl hover:border-primary hover:scale-[1.02] transition-all duration-200 text-sm glow-primary disabled:opacity-60 disabled:hover:scale-100 flex flex-col gap-1 h-auto"
+                >
+                  <Target className="w-5 h-5" />
+                  <span>Find Jobs</span>
+                  <span className="text-xs text-muted-foreground font-normal">5 real job matches</span>
+                </Button>
+                <Button
+                  onClick={() => handleLoadTrack("entrepreneur")}
+                  disabled={loadingVentures}
+                  className="bg-card border-2 border-accent/40 text-foreground font-semibold px-4 py-6 rounded-xl hover:border-accent hover:scale-[1.02] transition-all duration-200 text-sm glow-accent disabled:opacity-60 disabled:hover:scale-100 flex flex-col gap-1 h-auto"
+                >
+                  <Rocket className="w-5 h-5" />
+                  <span>Start a Venture</span>
+                  <span className="text-xs text-muted-foreground font-normal">5 business ideas</span>
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground text-center mt-3">With skill gap analysis — pick one or explore both</p>
             </motion.div>
           )}
 
-          {/* Jobs Display */}
-          <AnimatePresence>
-            {jobs.length > 0 && (
-              <motion.div className="mt-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 80, damping: 14 }}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                    <Target className="w-4 h-4 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-foreground">Real Job Matches</h2>
-                    <p className="text-xs text-muted-foreground">With skill gap analysis — here's your roadmap</p>
-                  </div>
-                </div>
+          {/* Track Tabs + Content */}
+          {showPathSection && (
+            <motion.div className="mt-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 80, damping: 14 }}>
+              {/* Tab switcher */}
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-secondary/50 mb-6">
+                <button
+                  onClick={() => {
+                    setActiveTrack("jobs");
+                    if (jobs.length === 0 && !loadingJobs) handleMatchJobs();
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    activeTrack === "jobs"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Target className="w-4 h-4" />
+                  Jobs
+                  {jobs.length > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-xs font-bold">{jobs.length}</span>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTrack("entrepreneur");
+                    if (ventures.length === 0 && !loadingVentures) handleMatchVentures();
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    activeTrack === "entrepreneur"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Rocket className="w-4 h-4" />
+                  Entrepreneur
+                  {ventures.length > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-accent/15 text-accent text-xs font-bold">{ventures.length}</span>
+                  )}
+                </button>
+              </div>
 
-                <div className="grid gap-4">
-                  {jobs.map((job, i) => {
-                    const isExpanded = expandedJob === i;
-                    return (
-                      <motion.div
-                        key={`${job.title}-${i}`}
-                        className="rounded-xl bg-card border border-border overflow-hidden hover:border-primary/20 transition-colors duration-200"
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1, duration: 0.4 }}
-                      >
-                        {/* Job header - always visible */}
-                        <button
-                          onClick={() => setExpandedJob(isExpanded ? null : i)}
-                          className="w-full p-5 md:p-6 text-left"
-                        >
-                          <div className="flex items-start justify-between gap-4 mb-3">
-                            <div className="flex-1">
-                              <h4 className="font-bold text-foreground text-lg">{job.title}</h4>
-                              <p className="text-sm text-muted-foreground">{job.company_type}</p>
-                            </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              {/* Match percentage ring */}
-                              <div className="relative w-12 h-12">
-                                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="hsl(var(--secondary))" strokeWidth="3" />
-                                  <circle
-                                    cx="18" cy="18" r="15.5" fill="none"
-                                    stroke={job.match_percentage >= 75 ? "hsl(var(--success))" : job.match_percentage >= 50 ? "hsl(var(--accent))" : "hsl(var(--primary))"}
-                                    strokeWidth="3"
-                                    strokeDasharray={`${(job.match_percentage / 100) * 97.4} 97.4`}
-                                    strokeLinecap="round"
-                                  />
-                                </svg>
-                                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">
-                                  {job.match_percentage}%
-                                </span>
-                              </div>
-                              {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-                            </div>
+              {/* Jobs Track */}
+              <AnimatePresence mode="wait">
+                {activeTrack === "jobs" && (
+                  <motion.div key="jobs" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.2 }}>
+                    {loadingJobs && (
+                      <div className="flex items-center justify-center py-12 text-muted-foreground">
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Finding real job matches...
+                      </div>
+                    )}
+
+                    {!loadingJobs && jobs.length > 0 && (
+                      <>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-7 h-7 rounded-lg bg-gradient-primary flex items-center justify-center">
+                            <Target className="w-3.5 h-3.5 text-primary-foreground" />
                           </div>
+                          <p className="text-xs text-muted-foreground">With skill gap analysis — here's your roadmap</p>
+                        </div>
 
-                          <div className="flex flex-wrap gap-3 text-xs">
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <MapPin className="w-3.5 h-3.5" />
-                              <span>{job.location}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <TrendingUp className="w-3.5 h-3.5 text-accent" />
-                              <span>{job.salary_range}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                              <Briefcase className="w-3.5 h-3.5 text-primary" />
-                              <span className="font-mono">{job.soc_code}</span>
-                            </div>
-                          </div>
-
-                          <p className="text-sm text-primary mt-3 italic">&quot;{job.why_youre_ready}&quot;</p>
-                        </button>
-
-                        {/* Expanded detail */}
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="overflow-hidden"
-                            >
-                              <div className="px-5 md:px-6 pb-6 border-t border-border pt-5 space-y-5">
-                                {/* Skills matched */}
-                                <div>
-                                  <h5 className="text-xs font-bold tracking-widest uppercase text-success mb-3 flex items-center gap-2">
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    Skills You Already Have
-                                  </h5>
-                                  <div className="flex flex-wrap gap-2">
-                                    {job.skills_matched.map((skill) => (
-                                      <span key={skill} className="px-3 py-1.5 rounded-full bg-success/15 text-success text-xs font-medium">
-                                        {skill}
-                                      </span>
-                                    ))}
+                        <div className="grid gap-4">
+                          {jobs.map((job, i) => {
+                            const isExpanded = expandedJob === i;
+                            return (
+                              <motion.div
+                                key={`${job.title}-${i}`}
+                                className="rounded-xl bg-card border border-border overflow-hidden hover:border-primary/20 transition-colors duration-200"
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1, duration: 0.4 }}
+                              >
+                                <button onClick={() => setExpandedJob(isExpanded ? null : i)} className="w-full p-5 md:p-6 text-left">
+                                  <div className="flex items-start justify-between gap-4 mb-3">
+                                    <div className="flex-1">
+                                      <h4 className="font-bold text-foreground text-lg">{job.title}</h4>
+                                      <p className="text-sm text-muted-foreground">{job.company_type}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                      <div className="relative w-12 h-12">
+                                        <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                                          <circle cx="18" cy="18" r="15.5" fill="none" stroke="hsl(var(--secondary))" strokeWidth="3" />
+                                          <circle
+                                            cx="18" cy="18" r="15.5" fill="none"
+                                            stroke={job.match_percentage >= 75 ? "hsl(var(--success))" : job.match_percentage >= 50 ? "hsl(var(--accent))" : "hsl(var(--primary))"}
+                                            strokeWidth="3"
+                                            strokeDasharray={`${(job.match_percentage / 100) * 97.4} 97.4`}
+                                            strokeLinecap="round"
+                                          />
+                                        </svg>
+                                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">{job.match_percentage}%</span>
+                                      </div>
+                                      {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                                    </div>
                                   </div>
-                                </div>
 
-                                {/* Skill gaps */}
-                                <div>
-                                  <h5 className="text-xs font-bold tracking-widest uppercase text-warning mb-3 flex items-center gap-2">
-                                    <AlertTriangle className="w-3.5 h-3.5" />
-                                    Skills To Develop
-                                  </h5>
-                                  <div className="space-y-3">
-                                    {job.skill_gaps.map((gap) => {
-                                      const config = difficultyConfig[gap.difficulty] || difficultyConfig.moderate;
-                                      return (
-                                        <div key={gap.name} className="p-4 rounded-lg bg-secondary/50 border border-border">
-                                          <div className="flex items-center justify-between mb-2">
-                                            <span className="font-semibold text-foreground text-sm">{gap.name}</span>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${config.bg} ${config.color}`}>
-                                              {config.label}
-                                            </span>
+                                  <div className="flex flex-wrap gap-3 text-xs">
+                                    <div className="flex items-center gap-1.5 text-muted-foreground"><MapPin className="w-3.5 h-3.5" /><span>{job.location}</span></div>
+                                    <div className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp className="w-3.5 h-3.5 text-accent" /><span>{job.salary_range}</span></div>
+                                    <div className="flex items-center gap-1.5 text-muted-foreground"><Briefcase className="w-3.5 h-3.5 text-primary" /><span className="font-mono">{job.soc_code}</span></div>
+                                  </div>
+
+                                  <p className="text-sm text-primary mt-3 italic">&quot;{job.why_youre_ready}&quot;</p>
+                                </button>
+
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                                      <div className="px-5 md:px-6 pb-6 border-t border-border pt-5 space-y-5">
+                                        <div>
+                                          <h5 className="text-xs font-bold tracking-widest uppercase text-success mb-3 flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5" />Skills You Already Have</h5>
+                                          <div className="flex flex-wrap gap-2">
+                                            {job.skills_matched.map((skill) => (
+                                              <span key={skill} className="px-3 py-1.5 rounded-full bg-success/15 text-success text-xs font-medium">{skill}</span>
+                                            ))}
                                           </div>
-                                          <p className="text-xs text-muted-foreground leading-relaxed">
-                                            → {gap.action}
-                                          </p>
                                         </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                                        <div>
+                                          <h5 className="text-xs font-bold tracking-widest uppercase text-warning mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" />Skills To Develop</h5>
+                                          <div className="space-y-3">
+                                            {job.skill_gaps.map((gap) => {
+                                              const config = difficultyConfig[gap.difficulty] || difficultyConfig.moderate;
+                                              return (
+                                                <div key={gap.name} className="p-4 rounded-lg bg-secondary/50 border border-border">
+                                                  <div className="flex items-center justify-between mb-2">
+                                                    <span className="font-semibold text-foreground text-sm">{gap.name}</span>
+                                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${config.bg} ${config.color}`}>{config.label}</span>
+                                                  </div>
+                                                  <p className="text-xs text-muted-foreground leading-relaxed">→ {gap.action}</p>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
 
-                <Button onClick={handleMatchJobs} variant="ghost" disabled={loadingJobs} className="mt-4 text-muted-foreground hover:text-foreground">
-                  {loadingJobs ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-2" />}
-                  Re-analyze jobs
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                        <Button onClick={handleMatchJobs} variant="ghost" disabled={loadingJobs} className="mt-4 text-muted-foreground hover:text-foreground">
+                          {loadingJobs ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-2" />}
+                          Re-analyze jobs
+                        </Button>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* Entrepreneur Track */}
+                {activeTrack === "entrepreneur" && (
+                  <motion.div key="entrepreneur" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}>
+                    {loadingVentures && (
+                      <div className="flex items-center justify-center py-12 text-muted-foreground">
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Generating venture ideas...
+                      </div>
+                    )}
+
+                    {!loadingVentures && ventures.length > 0 && (
+                      <>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
+                            <Rocket className="w-3.5 h-3.5 text-accent-foreground" />
+                          </div>
+                          <p className="text-xs text-muted-foreground">Venture ideas with skill gaps & first steps to launch</p>
+                        </div>
+
+                        <div className="grid gap-4">
+                          {ventures.map((venture, i) => {
+                            const isExpanded = expandedVenture === i;
+                            return (
+                              <motion.div
+                                key={`${venture.name}-${i}`}
+                                className="rounded-xl bg-card border border-border overflow-hidden hover:border-accent/20 transition-colors duration-200"
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1, duration: 0.4 }}
+                              >
+                                <button onClick={() => setExpandedVenture(isExpanded ? null : i)} className="w-full p-5 md:p-6 text-left">
+                                  <div className="flex items-start justify-between gap-4 mb-2">
+                                    <div className="flex-1">
+                                      <h4 className="font-bold text-foreground text-lg">{venture.name}</h4>
+                                      <p className="text-sm text-muted-foreground mt-1">{venture.pitch}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                      <div className="relative w-12 h-12">
+                                        <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                                          <circle cx="18" cy="18" r="15.5" fill="none" stroke="hsl(var(--secondary))" strokeWidth="3" />
+                                          <circle
+                                            cx="18" cy="18" r="15.5" fill="none"
+                                            stroke={venture.readiness_percentage >= 75 ? "hsl(var(--success))" : venture.readiness_percentage >= 50 ? "hsl(var(--accent))" : "hsl(var(--primary))"}
+                                            strokeWidth="3"
+                                            strokeDasharray={`${(venture.readiness_percentage / 100) * 97.4} 97.4`}
+                                            strokeLinecap="round"
+                                          />
+                                        </svg>
+                                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">{venture.readiness_percentage}%</span>
+                                      </div>
+                                      {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-wrap gap-3 text-xs mt-3">
+                                    <div className="flex items-center gap-1.5 text-muted-foreground"><Lightbulb className="w-3.5 h-3.5 text-accent" /><span>{venture.model}</span></div>
+                                    <div className="flex items-center gap-1.5 text-muted-foreground"><DollarSign className="w-3.5 h-3.5 text-success" /><span>{venture.startup_cost}</span></div>
+                                    <div className="flex items-center gap-1.5 text-muted-foreground"><Clock className="w-3.5 h-3.5 text-primary" /><span>{venture.time_to_revenue}</span></div>
+                                  </div>
+
+                                  <p className="text-sm text-accent mt-3 italic">&quot;{venture.why_youre_ready}&quot;</p>
+                                </button>
+
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                                      <div className="px-5 md:px-6 pb-6 border-t border-border pt-5 space-y-5">
+                                        {/* Skills matched */}
+                                        <div>
+                                          <h5 className="text-xs font-bold tracking-widest uppercase text-success mb-3 flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5" />Skills You Already Have</h5>
+                                          <div className="flex flex-wrap gap-2">
+                                            {venture.skills_matched.map((skill) => (
+                                              <span key={skill} className="px-3 py-1.5 rounded-full bg-success/15 text-success text-xs font-medium">{skill}</span>
+                                            ))}
+                                          </div>
+                                        </div>
+
+                                        {/* Skill gaps */}
+                                        <div>
+                                          <h5 className="text-xs font-bold tracking-widest uppercase text-warning mb-3 flex items-center gap-2"><AlertTriangle className="w-3.5 h-3.5" />Skills To Develop</h5>
+                                          <div className="space-y-3">
+                                            {venture.skill_gaps.map((gap) => {
+                                              const config = difficultyConfig[gap.difficulty] || difficultyConfig.moderate;
+                                              return (
+                                                <div key={gap.name} className="p-4 rounded-lg bg-secondary/50 border border-border">
+                                                  <div className="flex items-center justify-between mb-2">
+                                                    <span className="font-semibold text-foreground text-sm">{gap.name}</span>
+                                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${config.bg} ${config.color}`}>{config.label}</span>
+                                                  </div>
+                                                  <p className="text-xs text-muted-foreground leading-relaxed">→ {gap.action}</p>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        </div>
+
+                                        {/* First steps */}
+                                        <div>
+                                          <h5 className="text-xs font-bold tracking-widest uppercase text-primary mb-3 flex items-center gap-2"><Rocket className="w-3.5 h-3.5" />First Steps to Launch</h5>
+                                          <div className="space-y-2">
+                                            {venture.first_steps.map((step, si) => (
+                                              <div key={si} className="flex items-start gap-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                                                <span className="text-xs font-bold text-primary mt-0.5 shrink-0">{si + 1}.</span>
+                                                <p className="text-sm text-foreground/90">{step}</p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+
+                        <Button onClick={handleMatchVentures} variant="ghost" disabled={loadingVentures} className="mt-4 text-muted-foreground hover:text-foreground">
+                          {loadingVentures ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-2" />}
+                          Re-analyze ventures
+                        </Button>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
 
           <motion.div className="flex flex-col sm:flex-row items-center gap-4 mt-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
             <Button onClick={handleCopy} className="bg-gradient-primary text-primary-foreground font-semibold px-6 py-5 rounded-xl hover:scale-105 transition-transform duration-200 w-full sm:w-auto">
