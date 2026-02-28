@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowLeft, RotateCcw, Copy, Check, Wand2, Loader2, Briefcase, TrendingUp, GraduationCap } from "lucide-react";
+import { Sparkles, ArrowLeft, RotateCcw, Copy, Check, Wand2, Loader2, Briefcase, TrendingUp, GraduationCap, MapPin, Target, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
@@ -28,6 +28,30 @@ interface Career {
   education: string;
 }
 
+interface SkillGap {
+  name: string;
+  difficulty: "easy" | "moderate" | "intensive";
+  action: string;
+}
+
+interface Job {
+  title: string;
+  company_type: string;
+  location: string;
+  salary_range: string;
+  soc_code: string;
+  match_percentage: number;
+  skills_matched: string[];
+  skill_gaps: SkillGap[];
+  why_youre_ready: string;
+}
+
+const difficultyConfig = {
+  easy: { label: "Quick Win", color: "text-success", bg: "bg-success/15" },
+  moderate: { label: "1-3 Months", color: "text-warning", bg: "bg-warning/15" },
+  intensive: { label: "3-6+ Months", color: "text-destructive", bg: "bg-destructive/15" },
+};
+
 const Snapshot = () => {
   const navigate = useNavigate();
   const [responses, setResponses] = useState<string[]>([]);
@@ -36,6 +60,9 @@ const Snapshot = () => {
   const [extracting, setExtracting] = useState(false);
   const [careers, setCareers] = useState<Career[]>([]);
   const [loadingCareers, setLoadingCareers] = useState(false);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+  const [expandedJob, setExpandedJob] = useState<number | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("skillSignalResponses");
@@ -57,6 +84,10 @@ const Snapshot = () => {
 
     if (careers.length > 0) {
       text += "\n\n---\n\n💼 Suggested Career Paths\n" + careers.map((c) => `• ${c.title} (${c.soc_code}) — ${c.salary_range} | ${c.growth}`).join("\n");
+    }
+
+    if (jobs.length > 0) {
+      text += "\n\n---\n\n🎯 Job Matches & Skill Gap Analysis\n" + jobs.map((j) => `• ${j.title} at ${j.company_type} (${j.match_percentage}% match) — ${j.salary_range}\n  Skills matched: ${j.skills_matched.join(", ")}\n  Gaps: ${j.skill_gaps.map(g => `${g.name} (${g.difficulty})`).join(", ")}`).join("\n");
     }
 
     await navigator.clipboard.writeText(`✨ My Skill Snapshot\n\n${text}`);
@@ -104,6 +135,27 @@ const Snapshot = () => {
       toast.error("Something went wrong. Let's try again.");
     } finally {
       setLoadingCareers(false);
+    }
+  };
+
+  const handleMatchJobs = async () => {
+    setLoadingJobs(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("match-jobs", {
+        body: { skills, careers },
+      });
+      if (error) throw error;
+      if (data?.jobs) {
+        setJobs(data.jobs);
+        toast.success("Crushed it. Your job matches are live.");
+      } else {
+        throw new Error("No jobs returned");
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Something went wrong — but you've got this. Try again.");
+    } finally {
+      setLoadingJobs(false);
     }
   };
 
@@ -289,7 +341,166 @@ const Snapshot = () => {
             )}
           </AnimatePresence>
 
-          {/* Actions */}
+          {/* Match Jobs CTA */}
+          {careers.length > 0 && jobs.length === 0 && (
+            <motion.div className="mt-8" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+              <Button
+                onClick={handleMatchJobs}
+                disabled={loadingJobs}
+                className="w-full bg-card border-2 border-primary/40 text-foreground font-semibold px-6 py-6 rounded-xl hover:border-primary hover:scale-[1.02] transition-all duration-200 text-base glow-primary disabled:opacity-60 disabled:hover:scale-100"
+              >
+                {loadingJobs ? (
+                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Finding real job matches...</>
+                ) : (
+                  <><Target className="w-5 h-5 mr-2" />Find Real Jobs + Skill Gap Analysis</>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-3">5 realistic job options with a breakdown of what you have vs. what you'd need</p>
+            </motion.div>
+          )}
+
+          {/* Jobs Display */}
+          <AnimatePresence>
+            {jobs.length > 0 && (
+              <motion.div className="mt-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 80, damping: 14 }}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+                    <Target className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">Real Job Matches</h2>
+                    <p className="text-xs text-muted-foreground">With skill gap analysis — here's your roadmap</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4">
+                  {jobs.map((job, i) => {
+                    const isExpanded = expandedJob === i;
+                    return (
+                      <motion.div
+                        key={`${job.title}-${i}`}
+                        className="rounded-xl bg-card border border-border overflow-hidden hover:border-primary/20 transition-colors duration-200"
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1, duration: 0.4 }}
+                      >
+                        {/* Job header - always visible */}
+                        <button
+                          onClick={() => setExpandedJob(isExpanded ? null : i)}
+                          className="w-full p-5 md:p-6 text-left"
+                        >
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-bold text-foreground text-lg">{job.title}</h4>
+                              <p className="text-sm text-muted-foreground">{job.company_type}</p>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              {/* Match percentage ring */}
+                              <div className="relative w-12 h-12">
+                                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                                  <circle cx="18" cy="18" r="15.5" fill="none" stroke="hsl(var(--secondary))" strokeWidth="3" />
+                                  <circle
+                                    cx="18" cy="18" r="15.5" fill="none"
+                                    stroke={job.match_percentage >= 75 ? "hsl(var(--success))" : job.match_percentage >= 50 ? "hsl(var(--accent))" : "hsl(var(--primary))"}
+                                    strokeWidth="3"
+                                    strokeDasharray={`${(job.match_percentage / 100) * 97.4} 97.4`}
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">
+                                  {job.match_percentage}%
+                                </span>
+                              </div>
+                              {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-3 text-xs">
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              <MapPin className="w-3.5 h-3.5" />
+                              <span>{job.location}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              <TrendingUp className="w-3.5 h-3.5 text-accent" />
+                              <span>{job.salary_range}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              <Briefcase className="w-3.5 h-3.5 text-primary" />
+                              <span className="font-mono">{job.soc_code}</span>
+                            </div>
+                          </div>
+
+                          <p className="text-sm text-primary mt-3 italic">&quot;{job.why_youre_ready}&quot;</p>
+                        </button>
+
+                        {/* Expanded detail */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-5 md:px-6 pb-6 border-t border-border pt-5 space-y-5">
+                                {/* Skills matched */}
+                                <div>
+                                  <h5 className="text-xs font-bold tracking-widest uppercase text-success mb-3 flex items-center gap-2">
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    Skills You Already Have
+                                  </h5>
+                                  <div className="flex flex-wrap gap-2">
+                                    {job.skills_matched.map((skill) => (
+                                      <span key={skill} className="px-3 py-1.5 rounded-full bg-success/15 text-success text-xs font-medium">
+                                        {skill}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Skill gaps */}
+                                <div>
+                                  <h5 className="text-xs font-bold tracking-widest uppercase text-warning mb-3 flex items-center gap-2">
+                                    <AlertTriangle className="w-3.5 h-3.5" />
+                                    Skills To Develop
+                                  </h5>
+                                  <div className="space-y-3">
+                                    {job.skill_gaps.map((gap) => {
+                                      const config = difficultyConfig[gap.difficulty] || difficultyConfig.moderate;
+                                      return (
+                                        <div key={gap.name} className="p-4 rounded-lg bg-secondary/50 border border-border">
+                                          <div className="flex items-center justify-between mb-2">
+                                            <span className="font-semibold text-foreground text-sm">{gap.name}</span>
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${config.bg} ${config.color}`}>
+                                              {config.label}
+                                            </span>
+                                          </div>
+                                          <p className="text-xs text-muted-foreground leading-relaxed">
+                                            → {gap.action}
+                                          </p>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+
+                <Button onClick={handleMatchJobs} variant="ghost" disabled={loadingJobs} className="mt-4 text-muted-foreground hover:text-foreground">
+                  {loadingJobs ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RotateCcw className="w-4 h-4 mr-2" />}
+                  Re-analyze jobs
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <motion.div className="flex flex-col sm:flex-row items-center gap-4 mt-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
             <Button onClick={handleCopy} className="bg-gradient-primary text-primary-foreground font-semibold px-6 py-5 rounded-xl hover:scale-105 transition-transform duration-200 w-full sm:w-auto">
               {copied ? <><Check className="w-4 h-4 mr-2" />Copied!</> : <><Copy className="w-4 h-4 mr-2" />Copy Snapshot</>}
