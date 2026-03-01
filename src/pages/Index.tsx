@@ -11,7 +11,7 @@ const Index = () => {
       <footer className="py-12 px-6 border-t border-border">
         <div className="container max-w-5xl mx-auto text-center">
           <p className="text-sm text-muted-foreground">
-            Skill Signal — your skills deserve to be seen.
+            SkillLingo — your skills deserve to be seen.
           </p>
         </div>
       </footer>
