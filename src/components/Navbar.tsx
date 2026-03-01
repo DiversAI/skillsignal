@@ -13,7 +13,7 @@ const Navbar = () => {
             <Zap className="w-4 h-4 text-primary-foreground" />
           </div>
           <span className="text-lg font-bold text-foreground">
-            Skill Signal
+            SkillLingo
           </span>
         </Link>
 
