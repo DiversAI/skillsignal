@@ -73,9 +73,19 @@ ${responses[2]}`;
     const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (jsonMatch) jsonStr = jsonMatch[1];
     
-    const skills = JSON.parse(jsonStr.trim());
+    const parsed = JSON.parse(jsonStr.trim());
+    
+    // Normalize: handle flat array of alternating [name, evidence, name, evidence, ...]
+    let skillsArray = parsed.skills || parsed;
+    if (Array.isArray(skillsArray) && skillsArray.length > 0 && typeof skillsArray[0] === "string") {
+      const normalized = [];
+      for (let i = 0; i < skillsArray.length - 1; i += 2) {
+        normalized.push({ name: skillsArray[i], evidence: skillsArray[i + 1] });
+      }
+      skillsArray = normalized;
+    }
 
-    return new Response(JSON.stringify(skills), {
+    return new Response(JSON.stringify({ skills: skillsArray }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
