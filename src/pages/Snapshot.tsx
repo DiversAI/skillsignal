@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ArrowLeft, RotateCcw, Copy, Check, Wand2, Loader2, Briefcase, TrendingUp, GraduationCap, MapPin, Target, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Rocket, DollarSign, Clock, Lightbulb } from "lucide-react";
+import { Sparkles, ArrowLeft, RotateCcw, Copy, Check, Wand2, Loader2, Briefcase, TrendingUp, GraduationCap, MapPin, Target, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Rocket, DollarSign, Clock, Lightbulb, UserPlus, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,6 +85,46 @@ const Snapshot = () => {
   const [loadingVentures, setLoadingVentures] = useState(false);
   const [expandedVenture, setExpandedVenture] = useState<number | null>(null);
   const [activeTrack, setActiveTrack] = useState<PathTrack>("jobs");
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [registering, setRegistering] = useState(false);
+
+  const handleCreateProfile = async () => {
+    const { firstName, lastName, email, password } = profileForm;
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setRegistering(true);
+    try {
+      const res = await fetch("https://diversai.co/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, email, password, userType: "jobseeker" }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || `Registration failed (${res.status})`);
+      }
+      // Store assessment results in localStorage for DiversAI to pick up
+      const assessmentData = { skills, careers, jobs, ventures, responses };
+      localStorage.setItem("skilllingo_assessment", JSON.stringify(assessmentData));
+      toast.success("Profile created! Redirecting to DiversAI...");
+      setTimeout(() => {
+        window.location.href = "https://diversai.co";
+      }, 1000);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Registration failed. Please try again.");
+    } finally {
+      setRegistering(false);
+    }
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem("skillSignalResponses");
@@ -705,6 +748,58 @@ const Snapshot = () => {
               </AnimatePresence>
             </motion.div>
           )}
+
+          {/* Create DiversAI Profile CTA */}
+          {skills.length > 0 && (
+            <motion.div className="mt-10" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+              <Button
+                onClick={() => setShowProfileModal(true)}
+                className="w-full bg-gradient-to-r from-accent to-primary text-primary-foreground font-semibold px-6 py-6 rounded-xl hover:scale-[1.02] transition-transform duration-200 text-base"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                Create My DiversAI Profile
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-3">Take your skills assessment to DiversAI and get matched with opportunities</p>
+            </motion.div>
+          )}
+
+          {/* DiversAI Registration Modal */}
+          <Dialog open={showProfileModal} onOpenChange={setShowProfileModal}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create Your DiversAI Profile</DialogTitle>
+                <DialogDescription>Your skills assessment will be linked to your new profile.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input id="firstName" placeholder="First name" value={profileForm.firstName} onChange={(e) => setProfileForm(p => ({ ...p, firstName: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input id="lastName" placeholder="Last name" value={profileForm.lastName} onChange={(e) => setProfileForm(p => ({ ...p, lastName: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="you@example.com" value={profileForm.email} onChange={(e) => setProfileForm(p => ({ ...p, email: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input id="password" type={showPassword ? "text" : "password"} placeholder="Min 6 characters" value={profileForm.password} onChange={(e) => setProfileForm(p => ({ ...p, password: e.target.value }))} />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <Button onClick={handleCreateProfile} disabled={registering} className="w-full bg-gradient-primary text-primary-foreground font-semibold py-5 rounded-xl">
+                  {registering ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating Profile...</> : <>Create Profile & Go to DiversAI</>}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <motion.div className="flex flex-col sm:flex-row items-center gap-4 mt-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
             <Button onClick={handleCopy} className="bg-gradient-primary text-primary-foreground font-semibold px-6 py-5 rounded-xl hover:scale-105 transition-transform duration-200 w-full sm:w-auto">
