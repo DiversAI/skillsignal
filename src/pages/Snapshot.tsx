@@ -102,18 +102,49 @@ const Snapshot = () => {
     }
     setRegistering(true);
     try {
-      const res = await fetch("https://diversai.co/api/auth/register", {
+      // Step 1: Register
+      const regRes = await fetch("https://diversai.co/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, userType: "jobseeker" }),
       });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || `Registration failed (${res.status})`);
+      if (!regRes.ok) {
+        const errData = await regRes.json().catch(() => ({}));
+        throw new Error(errData.message || `Registration failed (${regRes.status})`);
       }
-      // Store assessment results in localStorage for DiversAI to pick up
-      const assessmentData = { skills, careers, jobs, ventures, responses };
+      const regData = await regRes.json();
+
+      // Step 2: Send assessment results with session
+      const assessmentData = {
+        skills,
+        careers,
+        jobs,
+        ventures,
+        responses,
+      };
+
+      // Extract auth token/session from registration response
+      const token = regData?.token || regData?.accessToken || regData?.session?.access_token;
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      // Include cookies from registration if set
+      const profileRes = await fetch("https://diversai.co/api/onboarding/smart-profile/complete", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({ finalFormData: assessmentData }),
+      });
+
+      if (!profileRes.ok) {
+        console.warn("Smart profile submission failed, but registration succeeded. Redirecting anyway.");
+      }
+
+      // Also store locally as backup
       localStorage.setItem("skilllingo_assessment", JSON.stringify(assessmentData));
+
       toast.success("Profile created! Redirecting to DiversAI...");
       setTimeout(() => {
         window.location.href = "https://diversai.co";
