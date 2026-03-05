@@ -102,15 +102,32 @@ const Snapshot = () => {
     }
     setRegistering(true);
     try {
-      const { data, error } = await supabase.functions.invoke("diversai-register", {
-        body: { firstName, lastName, email, password, skills, careers, jobs, ventures, responses },
+      // Step 1: Register
+      const regRes = await fetch("https://diversai-platform-beta.onrender.com/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, email, password, userType: "jobseeker" }),
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const regData = await regRes.json().catch(() => ({}));
+      if (!regRes.ok) throw new Error(regData.message || `Registration failed (${regRes.status})`);
 
-      // Store assessment results locally as backup
+      // Step 2: Submit assessment data
+      const token = regData?.token || regData?.accessToken || regData?.session?.access_token;
+      const profileHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) profileHeaders["Authorization"] = `Bearer ${token}`;
+
+      try {
+        await fetch("https://diversai-platform-beta.onrender.com/api/onboarding/smart-profile/complete", {
+          method: "POST",
+          headers: profileHeaders,
+          credentials: "include",
+          body: JSON.stringify({ finalFormData: { skills, careers, jobs, ventures, responses } }),
+        });
+      } catch (e) {
+        console.error("Smart profile submission failed:", e);
+      }
+
       localStorage.setItem("skilllingo_assessment", JSON.stringify({ skills, careers, jobs, ventures, responses }));
-
       toast.success("Profile created! Redirecting to DiversAI...");
       setTimeout(() => {
         window.location.href = "https://diversai.co";
