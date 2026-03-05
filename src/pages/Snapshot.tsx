@@ -128,9 +128,9 @@ const Snapshot = () => {
       }
 
       localStorage.setItem("skilllingo_assessment", JSON.stringify({ skills, careers, jobs, ventures, responses }));
-      toast.success("Profile created! Redirecting to DiversAI...");
+      toast.success("Profile created! Redirecting to DiversAI login...");
       setTimeout(() => {
-        window.location.href = "https://diversai.co";
+        window.location.href = `https://www.diversai.co/login?email=${encodeURIComponent(email)}`;
       }, 1000);
     } catch (e: any) {
       console.error(e);
