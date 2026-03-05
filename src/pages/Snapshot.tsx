@@ -106,7 +106,7 @@ const Snapshot = () => {
       const regRes = await fetch("https://diversai-platform-beta.onrender.com/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password, userType: "jobseeker" }),
+        body: JSON.stringify({ firstName, lastName, email, password, userType: "job_seeker" }),
       });
       const regData = await regRes.json().catch(() => ({}));
       if (!regRes.ok) throw new Error(regData.message || `Registration failed (${regRes.status})`);
