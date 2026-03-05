@@ -85,6 +85,46 @@ const Snapshot = () => {
   const [loadingVentures, setLoadingVentures] = useState(false);
   const [expandedVenture, setExpandedVenture] = useState<number | null>(null);
   const [activeTrack, setActiveTrack] = useState<PathTrack>("jobs");
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [registering, setRegistering] = useState(false);
+
+  const handleCreateProfile = async () => {
+    const { firstName, lastName, email, password } = profileForm;
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setRegistering(true);
+    try {
+      const res = await fetch("https://diversai.co/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, email, password, userType: "jobseeker" }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || `Registration failed (${res.status})`);
+      }
+      // Store assessment results in localStorage for DiversAI to pick up
+      const assessmentData = { skills, careers, jobs, ventures, responses };
+      localStorage.setItem("skilllingo_assessment", JSON.stringify(assessmentData));
+      toast.success("Profile created! Redirecting to DiversAI...");
+      setTimeout(() => {
+        window.location.href = "https://diversai.co";
+      }, 1000);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Registration failed. Please try again.");
+    } finally {
+      setRegistering(false);
+    }
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem("skillSignalResponses");
