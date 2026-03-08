@@ -71,16 +71,39 @@ const difficultyConfig = {
   intensive: { label: "3-6+ Months", color: "text-destructive", bg: "bg-destructive/15" },
 };
 
+const isResponseArray = (value: unknown): value is string[] => {
+  return Array.isArray(value) && value.length === 3 && value.every((item) => typeof item === "string");
+};
+
+const hasResponseContent = (value: string[]) => {
+  return value.some((item) => item.trim().length > 0);
+};
+
+const readStoredResponses = (): string[] | null => {
+  try {
+    const stored = localStorage.getItem("skillSignalResponses");
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    return isResponseArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
 const Snapshot = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
   const isDemoFromState = Boolean((location.state as { demo?: boolean } | null)?.demo);
-  const [isDemoMode, setIsDemoMode] = useState(
-    isDemo || isDemoFromState || localStorage.getItem("skillSignalDemo") === "true"
-  );
-  const [responses, setResponses] = useState<string[]>(isDemoMode ? DEMO_RESPONSES : []);
+  const initialDemoMode = isDemo || isDemoFromState || localStorage.getItem("skillSignalDemo") === "true";
+
+  const [isDemoMode, setIsDemoMode] = useState(initialDemoMode);
+  const [responses, setResponses] = useState<string[]>(() => {
+    if (initialDemoMode) return DEMO_RESPONSES;
+    const stored = readStoredResponses();
+    return stored && hasResponseContent(stored) ? stored : [];
+  });
   const [copied, setCopied] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -98,56 +121,6 @@ const Snapshot = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [registering, setRegistering] = useState(false);
 
-  const handleCreateProfile = async () => {
-    const { firstName, lastName, email, password } = profileForm;
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
-      toast.error("Please fill in all fields.");
-      return;
-    }
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
-      return;
-    }
-    setRegistering(true);
-    try {
-      // Step 1: Register
-      const regRes = await fetch("https://diversai-platform-beta.onrender.com/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password, userType: "job_seeker" }),
-      });
-      const regData = await regRes.json().catch(() => ({}));
-      if (!regRes.ok) throw new Error(regData.message || `Registration failed (${regRes.status})`);
-
-      // Step 2: Submit assessment data
-      const token = regData?.token || regData?.accessToken || regData?.session?.access_token;
-      const profileHeaders: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) profileHeaders["Authorization"] = `Bearer ${token}`;
-
-      try {
-        await fetch("https://diversai-platform-beta.onrender.com/api/onboarding/smart-profile/complete", {
-          method: "POST",
-          headers: profileHeaders,
-          credentials: "include",
-          body: JSON.stringify({ finalFormData: { skills, careers, jobs, ventures, responses } }),
-        });
-      } catch (e) {
-        console.error("Smart profile submission failed:", e);
-      }
-
-      localStorage.setItem("skilllingo_assessment", JSON.stringify({ skills, careers, jobs, ventures, responses }));
-      toast.success("Profile created! Redirecting to DiversAI login...");
-      setTimeout(() => {
-        window.location.href = `https://www.diversai.co/login?email=${encodeURIComponent(email)}`;
-      }, 1000);
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Registration failed. Please try again.");
-    } finally {
-      setRegistering(false);
-    }
-  };
-
   useEffect(() => {
     const demoFlag = localStorage.getItem("skillSignalDemo") === "true";
     const shouldUseDemo = isDemo || isDemoFromState || demoFlag;
@@ -160,24 +133,18 @@ const Snapshot = () => {
       return;
     }
 
-    const stored = localStorage.getItem("skillSignalResponses");
-    if (!stored) {
-      navigate("/prompts");
+    const storedResponses = readStoredResponses();
+    if (storedResponses && hasResponseContent(storedResponses)) {
+      setResponses(storedResponses);
       return;
     }
 
-    try {
-      const parsed = JSON.parse(stored);
-      const hasContent = Array.isArray(parsed) && parsed.some((item) => String(item).trim().length > 0);
-      if (Array.isArray(parsed) && parsed.length === 3 && hasContent) {
-        setResponses(parsed);
-      } else {
-        navigate("/prompts");
-      }
-    } catch {
-      navigate("/prompts");
-    }
+    navigate("/prompts", { replace: true });
   }, [navigate, isDemo, isDemoFromState]);
+
+  const effectiveResponses = isDemoMode && (!isResponseArray(responses) || !hasResponseContent(responses))
+    ? DEMO_RESPONSES
+    : responses;
 
   const handleCopy = async () => {
     let text = sectionMeta
