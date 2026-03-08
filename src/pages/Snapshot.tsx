@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_RESPONSES, DEMO_SKILLS, DEMO_CAREERS, DEMO_JOBS, DEMO_VENTURES } from "@/data/demoData";
 
 const sectionMeta = [
   { label: "What I've Built", icon: "🔨", description: "Projects, creations, and impact" },
