@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowLeft, RotateCcw, Copy, Check, Wand2, Loader2, Briefcase, TrendingUp, GraduationCap, MapPin, Target, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Rocket, DollarSign, Clock, Lightbulb, UserPlus, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
