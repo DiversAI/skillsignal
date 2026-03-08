@@ -292,7 +292,7 @@ const Snapshot = () => {
 
   const handleMatchVentures = async () => {
     setLoadingVentures(true);
-    if (isDemo) {
+    if (isDemoMode) {
       await new Promise(r => setTimeout(r, 1500));
       setVentures(DEMO_VENTURES);
       toast.success("Your venture ideas are ready. Time to build.");
