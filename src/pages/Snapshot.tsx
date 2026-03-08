@@ -264,7 +264,7 @@ const Snapshot = () => {
 
   const handleMatchJobs = async () => {
     setLoadingJobs(true);
-    if (isDemo) {
+    if (isDemoMode) {
       await new Promise(r => setTimeout(r, 1500));
       setJobs(DEMO_JOBS);
       toast.success("Crushed it. Your job matches are live.");
