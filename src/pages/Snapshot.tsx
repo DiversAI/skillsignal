@@ -185,6 +185,13 @@ const Snapshot = () => {
 
   const handleExtractSkills = async () => {
     setExtracting(true);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1500));
+      setSkills(DEMO_SKILLS);
+      toast.success("Skills extracted! You're making real progress.");
+      setExtracting(false);
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("extract-skills", {
         body: { responses },
