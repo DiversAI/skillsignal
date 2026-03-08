@@ -381,7 +381,7 @@ const Snapshot = () => {
                   <div className="flex-1">
                     <h3 className="text-lg font-bold text-foreground mb-1">{section.label}</h3>
                     <p className="text-xs text-muted-foreground mb-4 uppercase tracking-wider">{section.description}</p>
-                    <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{responses[index]}</p>
+                    <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">{effectiveResponses[index]}</p>
                   </div>
                 </div>
               </motion.div>
