@@ -213,6 +213,13 @@ const Snapshot = () => {
 
   const handleSuggestCareers = async () => {
     setLoadingCareers(true);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1500));
+      setCareers(DEMO_CAREERS);
+      toast.success("Career paths identified!");
+      setLoadingCareers(false);
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("suggest-careers", {
         body: { skills },
