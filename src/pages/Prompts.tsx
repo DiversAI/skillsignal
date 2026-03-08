@@ -40,7 +40,7 @@ const Prompts = () => {
     if (isDemo) {
       localStorage.setItem("skillSignalResponses", JSON.stringify(DEMO_RESPONSES));
       localStorage.setItem("skillSignalDemo", "true");
-      navigate("/snapshot?demo=true");
+      navigate("/snapshot?demo=true", { replace: true, state: { demo: true } });
     }
   }, [isDemo, navigate]);
 
