@@ -144,13 +144,17 @@ const Snapshot = () => {
   };
 
   useEffect(() => {
+    if (isDemo) {
+      setResponses(DEMO_RESPONSES);
+      return;
+    }
     const stored = localStorage.getItem("skillSignalResponses");
     if (stored) {
       setResponses(JSON.parse(stored));
     } else {
       navigate("/prompts");
     }
-  }, [navigate]);
+  }, [navigate, isDemo]);
 
   const handleCopy = async () => {
     let text = sectionMeta
