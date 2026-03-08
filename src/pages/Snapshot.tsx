@@ -342,7 +342,7 @@ const Snapshot = () => {
     }
   };
 
-  if (responses.length === 0) return null;
+  if (effectiveResponses.length === 0) return null;
 
   const hasPathData = jobs.length > 0 || ventures.length > 0;
   const showPathSection = careers.length > 0 && (hasPathData || loadingJobs || loadingVentures);
