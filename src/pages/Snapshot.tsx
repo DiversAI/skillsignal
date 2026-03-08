@@ -75,7 +75,7 @@ const Snapshot = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
-  const [responses, setResponses] = useState<string[]>([]);
+  const [responses, setResponses] = useState<string[]>(isDemo ? DEMO_RESPONSES : []);
   const [copied, setCopied] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -144,14 +144,29 @@ const Snapshot = () => {
   };
 
   useEffect(() => {
-    if (isDemo) {
+    const demoFlag = localStorage.getItem("skillSignalDemo") === "true";
+
+    if (isDemo || demoFlag) {
+      localStorage.setItem("skillSignalDemo", "true");
+      localStorage.setItem("skillSignalResponses", JSON.stringify(DEMO_RESPONSES));
       setResponses(DEMO_RESPONSES);
       return;
     }
+
     const stored = localStorage.getItem("skillSignalResponses");
-    if (stored) {
-      setResponses(JSON.parse(stored));
-    } else {
+    if (!stored) {
+      navigate("/prompts");
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length === 3) {
+        setResponses(parsed);
+      } else {
+        navigate("/prompts");
+      }
+    } catch {
       navigate("/prompts");
     }
   }, [navigate, isDemo]);
