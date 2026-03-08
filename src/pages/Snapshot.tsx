@@ -73,10 +73,14 @@ const difficultyConfig = {
 
 const Snapshot = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
-  const [responses, setResponses] = useState<string[]>(isDemo ? DEMO_RESPONSES : []);
-  const [copied, setCopied] = useState(false);
+  const isDemoFromState = Boolean((location.state as { demo?: boolean } | null)?.demo);
+  const [isDemoMode, setIsDemoMode] = useState(
+    isDemo || isDemoFromState || localStorage.getItem("skillSignalDemo") === "true"
+  );
+  const [responses, setResponses] = useState<string[]>(isDemoMode ? DEMO_RESPONSES : []);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [extracting, setExtracting] = useState(false);
   const [careers, setCareers] = useState<Career[]>([]);
