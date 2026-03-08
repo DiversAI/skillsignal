@@ -66,11 +66,9 @@ const HeroSection = () => {
             variant="outline"
             size="lg"
             className="border-border text-foreground font-medium text-lg px-8 py-6 rounded-xl hover:bg-secondary transition-colors duration-200"
-            onClick={() => {
-              document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
-            }}
+            onClick={() => navigate("/snapshot?demo=true")}
           >
-            See how it works
+            Try the Demo
           </Button>
         </motion.div>
       </div>
