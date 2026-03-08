@@ -207,7 +207,7 @@ const Snapshot = () => {
 
   const handleExtractSkills = async () => {
     setExtracting(true);
-    if (isDemo) {
+    if (isDemoMode) {
       await new Promise(r => setTimeout(r, 1500));
       setSkills(DEMO_SKILLS);
       toast.success("Skills extracted! You're making real progress.");
