@@ -241,6 +241,13 @@ const Snapshot = () => {
 
   const handleMatchJobs = async () => {
     setLoadingJobs(true);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1500));
+      setJobs(DEMO_JOBS);
+      toast.success("Crushed it. Your job matches are live.");
+      setLoadingJobs(false);
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("match-jobs", {
         body: { skills, careers },
