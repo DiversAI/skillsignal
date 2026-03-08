@@ -146,9 +146,57 @@ const Snapshot = () => {
     ? DEMO_RESPONSES
     : responses;
 
+  const handleCreateProfile = async () => {
+    const { firstName, lastName, email, password } = profileForm;
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    setRegistering(true);
+    try {
+      const regRes = await fetch("https://diversai-platform-beta.onrender.com/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, email, password, userType: "job_seeker" }),
+      });
+      const regData = await regRes.json().catch(() => ({}));
+      if (!regRes.ok) throw new Error(regData.message || `Registration failed (${regRes.status})`);
+
+      const token = regData?.token || regData?.accessToken || regData?.session?.access_token;
+      const profileHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) profileHeaders["Authorization"] = `Bearer ${token}`;
+
+      try {
+        await fetch("https://diversai-platform-beta.onrender.com/api/onboarding/smart-profile/complete", {
+          method: "POST",
+          headers: profileHeaders,
+          credentials: "include",
+          body: JSON.stringify({ finalFormData: { skills, careers, jobs, ventures, responses: effectiveResponses } }),
+        });
+      } catch (e) {
+        console.error("Smart profile submission failed:", e);
+      }
+
+      localStorage.setItem("skilllingo_assessment", JSON.stringify({ skills, careers, jobs, ventures, responses: effectiveResponses }));
+      toast.success("Profile created! Redirecting to DiversAI login...");
+      setTimeout(() => {
+        window.location.href = `https://www.diversai.co/login?email=${encodeURIComponent(email)}`;
+      }, 1000);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Registration failed. Please try again.");
+    } finally {
+      setRegistering(false);
+    }
+  };
+
   const handleCopy = async () => {
     let text = sectionMeta
-      .map((s, i) => `${s.icon} ${s.label}\n${responses[i] || ""}`)
+      .map((s, i) => `${s.icon} ${s.label}\n${effectiveResponses[i] || ""}`)
       .join("\n\n---\n\n");
 
     if (skills.length > 0) {
@@ -184,7 +232,7 @@ const Snapshot = () => {
     }
     try {
       const { data, error } = await supabase.functions.invoke("extract-skills", {
-        body: { responses },
+        body: { responses: effectiveResponses },
       });
       if (error) throw error;
       if (data?.skills) {
