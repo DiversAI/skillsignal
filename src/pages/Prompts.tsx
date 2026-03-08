@@ -30,8 +30,19 @@ const prompts = [
 
 const Prompts = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<string[]>(["", "", ""]);
+
+  // Demo mode: pre-fill and auto-navigate
+  useEffect(() => {
+    if (isDemo) {
+      localStorage.setItem("skillSignalResponses", JSON.stringify(DEMO_RESPONSES));
+      localStorage.setItem("skillSignalDemo", "true");
+      navigate("/snapshot?demo=true");
+    }
+  }, [isDemo, navigate]);
 
   const handleResponseChange = (value: string) => {
     const updated = [...responses];
