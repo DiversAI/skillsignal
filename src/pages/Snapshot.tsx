@@ -81,7 +81,7 @@ const Snapshot = () => {
     isDemo || isDemoFromState || localStorage.getItem("skillSignalDemo") === "true"
   );
   const [responses, setResponses] = useState<string[]>(isDemoMode ? DEMO_RESPONSES : []);
-  const [skills, setSkills] = useState<Skill[]>([]);
+  const [copied, setCopied] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [careers, setCareers] = useState<Career[]>([]);
   const [loadingCareers, setLoadingCareers] = useState(false);
