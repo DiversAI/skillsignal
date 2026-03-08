@@ -38,6 +38,7 @@ const Prompts = () => {
   // Demo mode: pre-fill and auto-navigate
   useEffect(() => {
     if (isDemo) {
+      setResponses(DEMO_RESPONSES);
       localStorage.setItem("skillSignalResponses", JSON.stringify(DEMO_RESPONSES));
       localStorage.setItem("skillSignalDemo", "true");
       navigate("/snapshot?demo=true", { replace: true, state: { demo: true } });
