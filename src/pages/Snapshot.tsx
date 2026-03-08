@@ -92,7 +92,7 @@ const Snapshot = () => {
   const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [registering, setRegistering] = useState(false);
-...
+
   useEffect(() => {
     const demoFlag = localStorage.getItem("skillSignalDemo") === "true";
 
