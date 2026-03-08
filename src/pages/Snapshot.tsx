@@ -269,6 +269,13 @@ const Snapshot = () => {
 
   const handleMatchVentures = async () => {
     setLoadingVentures(true);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1500));
+      setVentures(DEMO_VENTURES);
+      toast.success("Your venture ideas are ready. Time to build.");
+      setLoadingVentures(false);
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("match-ventures", {
         body: { skills, careers },
