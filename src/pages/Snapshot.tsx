@@ -75,7 +75,7 @@ const Snapshot = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
-  const [responses, setResponses] = useState<string[]>([]);
+  const [responses, setResponses] = useState<string[]>(isDemo ? DEMO_RESPONSES : []);
   const [copied, setCopied] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -92,66 +92,31 @@ const Snapshot = () => {
   const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [registering, setRegistering] = useState(false);
-
-  const handleCreateProfile = async () => {
-    const { firstName, lastName, email, password } = profileForm;
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
-      toast.error("Please fill in all fields.");
-      return;
-    }
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters.");
-      return;
-    }
-    setRegistering(true);
-    try {
-      // Step 1: Register
-      const regRes = await fetch("https://diversai-platform-beta.onrender.com/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password, userType: "job_seeker" }),
-      });
-      const regData = await regRes.json().catch(() => ({}));
-      if (!regRes.ok) throw new Error(regData.message || `Registration failed (${regRes.status})`);
-
-      // Step 2: Submit assessment data
-      const token = regData?.token || regData?.accessToken || regData?.session?.access_token;
-      const profileHeaders: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) profileHeaders["Authorization"] = `Bearer ${token}`;
-
-      try {
-        await fetch("https://diversai-platform-beta.onrender.com/api/onboarding/smart-profile/complete", {
-          method: "POST",
-          headers: profileHeaders,
-          credentials: "include",
-          body: JSON.stringify({ finalFormData: { skills, careers, jobs, ventures, responses } }),
-        });
-      } catch (e) {
-        console.error("Smart profile submission failed:", e);
-      }
-
-      localStorage.setItem("skilllingo_assessment", JSON.stringify({ skills, careers, jobs, ventures, responses }));
-      toast.success("Profile created! Redirecting to DiversAI login...");
-      setTimeout(() => {
-        window.location.href = `https://www.diversai.co/login?email=${encodeURIComponent(email)}`;
-      }, 1000);
-    } catch (e: any) {
-      console.error(e);
-      toast.error(e.message || "Registration failed. Please try again.");
-    } finally {
-      setRegistering(false);
-    }
-  };
-
+...
   useEffect(() => {
-    if (isDemo) {
+    const demoFlag = localStorage.getItem("skillSignalDemo") === "true";
+
+    if (isDemo || demoFlag) {
+      localStorage.setItem("skillSignalDemo", "true");
+      localStorage.setItem("skillSignalResponses", JSON.stringify(DEMO_RESPONSES));
       setResponses(DEMO_RESPONSES);
       return;
     }
+
     const stored = localStorage.getItem("skillSignalResponses");
-    if (stored) {
-      setResponses(JSON.parse(stored));
-    } else {
+    if (!stored) {
+      navigate("/prompts");
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length === 3) {
+        setResponses(parsed);
+      } else {
+        navigate("/prompts");
+      }
+    } catch {
       navigate("/prompts");
     }
   }, [navigate, isDemo]);
