@@ -1,0 +1,237 @@
+// Demo data — only loaded when ?demo=true is in the URL
+
+export const DEMO_RESPONSES = [
+  "I organized a community tech workshop that taught 30 adults basic digital literacy — from setting up email to using Google Docs. I also built a small e-commerce site for a friend's handmade jewelry business using Shopify, which helped her double her monthly sales within two months. At my last job, I created an internal wiki that became the go-to resource for our 50-person team.",
+  "People always come to me when they need something explained simply. Whether it's breaking down a confusing insurance policy or walking a coworker through a new software tool, I'm the one they call. I'm also the go-to person for resolving conflicts — friends and colleagues trust me to listen to both sides and find a fair solution. My manager used to say I was the 'team translator' because I could turn technical jargon into plain English.",
+  "When COVID hit, I lost my restaurant job overnight. Instead of waiting, I learned graphic design through free YouTube tutorials and started freelancing within 6 weeks. My first client was a local nonprofit that needed social media graphics. That experience taught me I can learn anything under pressure and that my creativity is a real asset, not just a hobby. I went from zero design skills to earning $2,000/month freelancing in under 4 months.",
+];
+
+export const DEMO_SKILLS = [
+  { name: "Community Organizing & Leadership", evidence: "Organized a tech workshop for 30 adults, demonstrating ability to plan, recruit, and lead community initiatives." },
+  { name: "Digital Literacy Instruction", evidence: "Taught basic digital skills to adults with varying tech comfort levels, showing patience and adaptability." },
+  { name: "E-Commerce & Web Development", evidence: "Built a Shopify store that doubled a small business's monthly sales — practical tech skills with measurable impact." },
+  { name: "Technical Communication", evidence: "Known as the 'team translator' who turns jargon into plain English; created a wiki used by 50+ people." },
+  { name: "Conflict Resolution & Mediation", evidence: "Trusted by friends and colleagues to mediate disputes and find fair solutions." },
+  { name: "Rapid Self-Directed Learning", evidence: "Learned graphic design from scratch via YouTube and was freelancing within 6 weeks." },
+  { name: "Resilience & Adaptability", evidence: "Pivoted from restaurant work to freelance design during COVID, earning $2K/month in under 4 months." },
+  { name: "Visual Design & Branding", evidence: "Created social media graphics for a nonprofit client, demonstrating creative and branding skills." },
+];
+
+export const DEMO_CAREERS = [
+  {
+    title: "Training & Development Specialist",
+    soc_code: "13-1151.00",
+    match_reason: "Your ability to teach digital literacy, create documentation, and translate complex topics into simple language aligns perfectly with this role.",
+    salary_range: "$50,000 – $85,000",
+    growth: "8% (faster than average)",
+    bright_outlook: true,
+    education: "Bachelor's degree typical",
+  },
+  {
+    title: "Community & Social Service Manager",
+    soc_code: "11-9151.00",
+    match_reason: "Your community organizing, leadership, and conflict resolution skills make you a strong fit for managing social programs.",
+    salary_range: "$55,000 – $95,000",
+    growth: "12% (much faster than average)",
+    bright_outlook: true,
+    education: "Bachelor's degree",
+  },
+  {
+    title: "Web Developer",
+    soc_code: "15-1254.00",
+    match_reason: "Your hands-on e-commerce experience, rapid learning ability, and technical communication skills position you well for web development roles.",
+    salary_range: "$55,000 – $110,000",
+    growth: "16% (much faster than average)",
+    bright_outlook: true,
+    education: "Associate's degree or certification",
+  },
+  {
+    title: "Graphic Designer",
+    soc_code: "27-1024.00",
+    match_reason: "Self-taught design skills with real freelance clients, combined with branding sense and client communication ability.",
+    salary_range: "$40,000 – $75,000",
+    growth: "3% (as fast as average)",
+    bright_outlook: false,
+    education: "Bachelor's degree typical",
+  },
+  {
+    title: "Technical Writer",
+    soc_code: "27-3042.00",
+    match_reason: "Creating an internal wiki for 50 people and being the 'team translator' are exactly the skills technical writers need.",
+    salary_range: "$55,000 – $95,000",
+    growth: "7% (faster than average)",
+    bright_outlook: true,
+    education: "Bachelor's degree",
+  },
+];
+
+export const DEMO_JOBS = [
+  {
+    title: "Learning Experience Designer",
+    company_type: "EdTech Startup",
+    location: "Remote",
+    salary_range: "$65,000 – $90,000",
+    soc_code: "13-1151.00",
+    match_percentage: 88,
+    skills_matched: ["Digital Literacy Instruction", "Technical Communication", "Community Organizing"],
+    skill_gaps: [
+      { name: "Instructional Design Tools (Articulate, Captivate)", difficulty: "moderate" as const, action: "Take a free Articulate 360 trial and complete their getting-started tutorials" },
+      { name: "LMS Administration", difficulty: "easy" as const, action: "Explore free LMS platforms like Moodle or TalentLMS to build familiarity" },
+    ],
+    why_youre_ready: "You've already taught 30 adults and built a team wiki — you know how people learn.",
+  },
+  {
+    title: "Community Program Coordinator",
+    company_type: "Nonprofit Organization",
+    location: "Hybrid — Major Metro Area",
+    salary_range: "$48,000 – $62,000",
+    soc_code: "11-9151.00",
+    match_percentage: 92,
+    skills_matched: ["Community Organizing & Leadership", "Conflict Resolution", "Resilience & Adaptability"],
+    skill_gaps: [
+      { name: "Grant Writing Basics", difficulty: "moderate" as const, action: "Take Coursera's free 'Grant Writing' course by Georgia Tech" },
+    ],
+    why_youre_ready: "You organized a 30-person workshop and thrive under pressure — nonprofits need exactly this energy.",
+  },
+  {
+    title: "Junior Front-End Developer",
+    company_type: "Digital Agency",
+    location: "Remote",
+    salary_range: "$55,000 – $75,000",
+    soc_code: "15-1254.00",
+    match_percentage: 72,
+    skills_matched: ["E-Commerce & Web Development", "Rapid Self-Directed Learning", "Visual Design"],
+    skill_gaps: [
+      { name: "JavaScript Frameworks (React/Vue)", difficulty: "intensive" as const, action: "Complete freeCodeCamp's React certification (300 hours)" },
+      { name: "Version Control (Git)", difficulty: "easy" as const, action: "Complete GitHub's free 'Introduction to GitHub' course" },
+      { name: "CSS Frameworks (Tailwind)", difficulty: "easy" as const, action: "Build 3 small projects using Tailwind CSS documentation" },
+    ],
+    why_youre_ready: "You already shipped a real e-commerce site — most juniors haven't built anything with real users yet.",
+  },
+  {
+    title: "Brand & Marketing Coordinator",
+    company_type: "Small-to-Medium Business",
+    location: "Hybrid",
+    salary_range: "$45,000 – $60,000",
+    soc_code: "27-1024.00",
+    match_percentage: 80,
+    skills_matched: ["Visual Design & Branding", "Technical Communication", "Rapid Self-Directed Learning"],
+    skill_gaps: [
+      { name: "Marketing Analytics (Google Analytics)", difficulty: "moderate" as const, action: "Get Google Analytics certified — free course takes ~4 hours" },
+      { name: "Email Marketing Tools (Mailchimp)", difficulty: "easy" as const, action: "Set up a free Mailchimp account and build a test campaign" },
+    ],
+    why_youre_ready: "You turned freelance design into $2K/month — you understand branding from the business side, not just the creative side.",
+  },
+  {
+    title: "Technical Documentation Specialist",
+    company_type: "SaaS Company",
+    location: "Remote",
+    salary_range: "$60,000 – $85,000",
+    soc_code: "27-3042.00",
+    match_percentage: 85,
+    skills_matched: ["Technical Communication", "Digital Literacy Instruction", "E-Commerce & Web Development"],
+    skill_gaps: [
+      { name: "Documentation Tools (Confluence, GitBook)", difficulty: "easy" as const, action: "Create a free GitBook project and migrate some of your wiki content" },
+      { name: "API Documentation Basics", difficulty: "moderate" as const, action: "Study Stripe's API docs as a gold standard, then try documenting a simple API" },
+    ],
+    why_youre_ready: "You literally built a wiki that 50 people used daily — that IS technical documentation.",
+  },
+];
+
+export const DEMO_VENTURES = [
+  {
+    name: "Digital Skills Academy",
+    pitch: "Online platform teaching digital literacy to adults and small business owners, combining live workshops with self-paced courses.",
+    model: "Subscription + Cohort-based",
+    startup_cost: "$500 – $2,000",
+    time_to_revenue: "4-8 weeks",
+    readiness_percentage: 90,
+    skills_matched: ["Digital Literacy Instruction", "Community Organizing", "Technical Communication"],
+    skill_gaps: [
+      { name: "Online Course Platform Setup", difficulty: "easy" as const, action: "Set up a free Teachable or Thinkific account and create your first module" },
+      { name: "Email List Building", difficulty: "moderate" as const, action: "Use ConvertKit's free tier to build a landing page and start collecting emails" },
+    ],
+    first_steps: [
+      "Outline a 4-week 'Digital Basics' curriculum based on your workshop experience",
+      "Set up a landing page on Carrd ($19/year) to validate demand",
+      "Run a free pilot workshop on Zoom for 10 people and collect testimonials",
+    ],
+    why_youre_ready: "You've already taught 30 adults successfully — now scale that impact online.",
+  },
+  {
+    name: "Small Biz Web Studio",
+    pitch: "Done-for-you Shopify and website setup service for local small businesses, with ongoing maintenance plans.",
+    model: "Service-based + Retainer",
+    startup_cost: "$200 – $500",
+    time_to_revenue: "2-4 weeks",
+    readiness_percentage: 85,
+    skills_matched: ["E-Commerce & Web Development", "Visual Design & Branding", "Technical Communication"],
+    skill_gaps: [
+      { name: "Client Proposal & Pricing", difficulty: "easy" as const, action: "Create 3 service tier templates (Basic, Standard, Premium) with clear deliverables" },
+      { name: "SEO Fundamentals", difficulty: "moderate" as const, action: "Complete Google's free SEO starter guide and Moz's beginner course" },
+    ],
+    first_steps: [
+      "Package your jewelry store success story as a case study",
+      "Create a simple portfolio site showcasing your work",
+      "Reach out to 10 local businesses and offer a free website audit",
+    ],
+    why_youre_ready: "You already doubled a client's sales with a Shopify store — that's your proof of concept.",
+  },
+  {
+    name: "The Conflict Coach",
+    pitch: "Mediation and communication coaching for small teams and startups who can't afford HR consultants.",
+    model: "Per-session + Package deals",
+    startup_cost: "$100 – $300",
+    time_to_revenue: "3-6 weeks",
+    readiness_percentage: 70,
+    skills_matched: ["Conflict Resolution & Mediation", "Community Organizing", "Technical Communication"],
+    skill_gaps: [
+      { name: "Mediation Certification", difficulty: "intensive" as const, action: "Enroll in a 40-hour community mediation training program (many are free through courts)" },
+      { name: "Business Coaching Framework", difficulty: "moderate" as const, action: "Study the GROW coaching model and practice with 3 volunteer clients" },
+    ],
+    first_steps: [
+      "Offer 5 free mediation sessions to friends' workplaces to build testimonials",
+      "Create a one-page service description with pricing tiers",
+      "Join local business networking groups (BNI, Chamber of Commerce) to find clients",
+    ],
+    why_youre_ready: "People already come to you for conflict resolution — you just haven't charged for it yet.",
+  },
+  {
+    name: "Freelance Design Collective",
+    pitch: "A curated network of self-taught designers offering affordable branding packages to startups and nonprofits.",
+    model: "Agency model — commission on projects",
+    startup_cost: "$300 – $1,000",
+    time_to_revenue: "6-10 weeks",
+    readiness_percentage: 65,
+    skills_matched: ["Visual Design & Branding", "Rapid Self-Directed Learning", "Resilience & Adaptability"],
+    skill_gaps: [
+      { name: "Project Management", difficulty: "moderate" as const, action: "Learn Asana or Trello basics and create a client project template" },
+      { name: "Contractor Management", difficulty: "moderate" as const, action: "Draft a simple freelancer agreement template using free legal resources" },
+    ],
+    first_steps: [
+      "Recruit 3-4 fellow self-taught designers from online communities",
+      "Create a shared portfolio showcasing collective work",
+      "Offer a 'Startup Brand Kit' package at an introductory rate",
+    ],
+    why_youre_ready: "You bootstrapped your own design career from zero — now help others do the same while you earn from the collective.",
+  },
+  {
+    name: "Community Tech Hub",
+    pitch: "A physical or virtual co-learning space where underserved adults learn tech skills, get career coaching, and access job opportunities.",
+    model: "Grant-funded + Sponsorships + Paid workshops",
+    startup_cost: "$2,000 – $5,000",
+    time_to_revenue: "8-16 weeks",
+    readiness_percentage: 60,
+    skills_matched: ["Community Organizing & Leadership", "Digital Literacy Instruction", "Resilience & Adaptability"],
+    skill_gaps: [
+      { name: "Grant Writing", difficulty: "intensive" as const, action: "Partner with a local nonprofit for fiscal sponsorship and apply for digital equity grants" },
+      { name: "Partnerships & Fundraising", difficulty: "moderate" as const, action: "Identify 5 potential corporate sponsors and draft partnership proposals" },
+    ],
+    first_steps: [
+      "Partner with a library or community center for free meeting space",
+      "Run a 4-week pilot program with 15 participants",
+      "Document impact metrics (job placements, skill gains) for grant applications",
+    ],
+    why_youre_ready: "You already proved this works with your 30-person workshop — now formalize it into a sustainable program.",
+  },
+];

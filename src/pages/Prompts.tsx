@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { DEMO_RESPONSES } from "@/data/demoData";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/Navbar";
@@ -29,8 +30,19 @@ const prompts = [
 
 const Prompts = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
   const [currentStep, setCurrentStep] = useState(0);
   const [responses, setResponses] = useState<string[]>(["", "", ""]);
+
+  // Demo mode: pre-fill and auto-navigate
+  useEffect(() => {
+    if (isDemo) {
+      localStorage.setItem("skillSignalResponses", JSON.stringify(DEMO_RESPONSES));
+      localStorage.setItem("skillSignalDemo", "true");
+      navigate("/snapshot?demo=true");
+    }
+  }, [isDemo, navigate]);
 
   const handleResponseChange = (value: string) => {
     const updated = [...responses];

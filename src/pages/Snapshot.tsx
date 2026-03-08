@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowLeft, RotateCcw, Copy, Check, Wand2, Loader2, Briefcase, TrendingUp, GraduationCap, MapPin, Target, ChevronDown, ChevronUp, CheckCircle2, AlertTriangle, Rocket, DollarSign, Clock, Lightbulb, UserPlus, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_RESPONSES, DEMO_SKILLS, DEMO_CAREERS, DEMO_JOBS, DEMO_VENTURES } from "@/data/demoData";
 
 const sectionMeta = [
   { label: "What I've Built", icon: "🔨", description: "Projects, creations, and impact" },
@@ -72,6 +73,8 @@ const difficultyConfig = {
 
 const Snapshot = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
   const [responses, setResponses] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -141,13 +144,17 @@ const Snapshot = () => {
   };
 
   useEffect(() => {
+    if (isDemo) {
+      setResponses(DEMO_RESPONSES);
+      return;
+    }
     const stored = localStorage.getItem("skillSignalResponses");
     if (stored) {
       setResponses(JSON.parse(stored));
     } else {
       navigate("/prompts");
     }
-  }, [navigate]);
+  }, [navigate, isDemo]);
 
   const handleCopy = async () => {
     let text = sectionMeta
@@ -178,6 +185,13 @@ const Snapshot = () => {
 
   const handleExtractSkills = async () => {
     setExtracting(true);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1500));
+      setSkills(DEMO_SKILLS);
+      toast.success("Skills extracted! You're making real progress.");
+      setExtracting(false);
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("extract-skills", {
         body: { responses },
@@ -199,6 +213,13 @@ const Snapshot = () => {
 
   const handleSuggestCareers = async () => {
     setLoadingCareers(true);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1500));
+      setCareers(DEMO_CAREERS);
+      toast.success("Career paths identified!");
+      setLoadingCareers(false);
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("suggest-careers", {
         body: { skills },
@@ -220,6 +241,13 @@ const Snapshot = () => {
 
   const handleMatchJobs = async () => {
     setLoadingJobs(true);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1500));
+      setJobs(DEMO_JOBS);
+      toast.success("Crushed it. Your job matches are live.");
+      setLoadingJobs(false);
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("match-jobs", {
         body: { skills, careers },
@@ -241,6 +269,13 @@ const Snapshot = () => {
 
   const handleMatchVentures = async () => {
     setLoadingVentures(true);
+    if (isDemo) {
+      await new Promise(r => setTimeout(r, 1500));
+      setVentures(DEMO_VENTURES);
+      toast.success("Your venture ideas are ready. Time to build.");
+      setLoadingVentures(false);
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("match-ventures", {
         body: { skills, careers },
