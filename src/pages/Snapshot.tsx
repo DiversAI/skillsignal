@@ -84,6 +84,7 @@ const Snapshot = () => {
   const [copied, setCopied] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [extracting, setExtracting] = useState(false);
+  const [careers, setCareers] = useState<Career[]>([]);
   const [loadingCareers, setLoadingCareers] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
