@@ -73,6 +73,8 @@ const difficultyConfig = {
 
 const Snapshot = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
   const [responses, setResponses] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [skills, setSkills] = useState<Skill[]>([]);
