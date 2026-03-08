@@ -149,8 +149,10 @@ const Snapshot = () => {
 
   useEffect(() => {
     const demoFlag = localStorage.getItem("skillSignalDemo") === "true";
+    const shouldUseDemo = isDemo || isDemoFromState || demoFlag;
 
-    if (isDemo || demoFlag) {
+    if (shouldUseDemo) {
+      setIsDemoMode(true);
       localStorage.setItem("skillSignalDemo", "true");
       localStorage.setItem("skillSignalResponses", JSON.stringify(DEMO_RESPONSES));
       setResponses(DEMO_RESPONSES);
@@ -165,7 +167,8 @@ const Snapshot = () => {
 
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length === 3) {
+      const hasContent = Array.isArray(parsed) && parsed.some((item) => String(item).trim().length > 0);
+      if (Array.isArray(parsed) && parsed.length === 3 && hasContent) {
         setResponses(parsed);
       } else {
         navigate("/prompts");
@@ -173,7 +176,7 @@ const Snapshot = () => {
     } catch {
       navigate("/prompts");
     }
-  }, [navigate, isDemo]);
+  }, [navigate, isDemo, isDemoFromState]);
 
   const handleCopy = async () => {
     let text = sectionMeta
