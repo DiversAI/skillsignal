@@ -9,8 +9,6 @@ import SkillsInput from "./pages/SkillsInput";
 import Dashboard from "./pages/Dashboard";
 import GapAnalysis from "./pages/GapAnalysis";
 import LearningPath from "./pages/LearningPath";
-import Prompts from "./pages/Prompts";
-import Snapshot from "./pages/Snapshot";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,8 +26,6 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/gap-analysis" element={<GapAnalysis />} />
             <Route path="/learning-path" element={<LearningPath />} />
-            <Route path="/prompts" element={<Prompts />} />
-            <Route path="/snapshot" element={<Snapshot />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
