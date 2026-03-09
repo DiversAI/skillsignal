@@ -149,12 +149,15 @@ const Landing = () => {
               <Button
                 size="lg"
                 className="w-full bg-gradient-primary text-primary-foreground font-semibold text-lg px-8 py-6 rounded-xl glow-primary hover:scale-105 transition-transform"
-                onClick={() => navigate("/prompts")}
+                onClick={() => {
+                  setEntryMethod("manual");
+                  navigate("/skills-input");
+                }}
               >
                 Start L&D Assessment
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-              <p className="text-sm text-muted-foreground mt-4">Existing SkillLingo flow for talent developers & workforce centers</p>
+              <p className="text-sm text-muted-foreground mt-4">Map cohort skills, identify gaps, and track workforce readiness</p>
             </motion.div>
           )}
         </div>
