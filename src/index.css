@@ -81,30 +81,30 @@
 @layer utilities {
   .text-gradient-primary {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(213 52% 24%), hsl(160 59% 52%));
+    background-image: linear-gradient(135deg, hsl(270 60% 50%), hsl(280 70% 60%));
   }
 
   .bg-gradient-primary {
-    background-image: linear-gradient(135deg, hsl(213 52% 24%), hsl(160 59% 42%));
+    background-image: linear-gradient(135deg, hsl(270 60% 45%), hsl(280 70% 55%));
   }
 
   .bg-gradient-subtle {
-    background-image: linear-gradient(180deg, hsl(0 0% 100%), hsl(263 61% 97%));
+    background-image: linear-gradient(180deg, hsl(0 0% 100%), hsl(270 50% 97%));
   }
 
   .bg-gradient-hero {
-    background-image: linear-gradient(135deg, hsl(213 52% 24% / 0.03), hsl(160 59% 52% / 0.05), hsl(263 61% 95% / 0.3));
+    background-image: linear-gradient(135deg, hsl(270 60% 50% / 0.03), hsl(280 70% 60% / 0.05), hsl(270 50% 95% / 0.3));
   }
 
   .glow-primary {
-    box-shadow: 0 4px 20px hsl(213 52% 24% / 0.2);
+    box-shadow: 0 4px 20px hsl(270 60% 50% / 0.25);
   }
 
   .glow-accent {
-    box-shadow: 0 4px 20px hsl(160 59% 52% / 0.25);
+    box-shadow: 0 4px 20px hsl(280 70% 60% / 0.25);
   }
 
   .glow-lavender {
-    box-shadow: 0 4px 20px hsl(263 61% 80% / 0.3);
+    box-shadow: 0 4px 20px hsl(270 50% 80% / 0.3);
   }
 }
