@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"Inter"', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', '"Inter"', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -50,6 +51,12 @@ export default {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        lavender: {
+          DEFAULT: "hsl(var(--lavender))",
+          foreground: "hsl(var(--lavender-foreground))",
+        },
+        navy: "hsl(var(--navy))",
+        emerald: "hsl(var(--emerald))",
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -90,6 +97,10 @@ export default {
         "scale-in": {
           "0%": { transform: "scale(0.95)", opacity: "0" },
           "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "fill-circle": {
+          "0%": { strokeDasharray: "0 100" },
+          "100%": { strokeDasharray: "var(--target-dash) 100" },
         },
       },
       animation: {
