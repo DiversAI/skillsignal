@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen, Wrench, Award, CheckCircle2, Circle, Clock, Loader2, ArrowRight, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { useSkills } from "@/lib/skillsContext";
-import { supabase } from "@/integrations/supabase/client";
+import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 
 const statusIcons = {
@@ -21,7 +21,7 @@ const statusColors = {
 };
 
 const LearningPath = () => {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const { skills, targetRole, gapAnalysis, learningPath, setLearningPath, updateLearningStatus, updateGapStatus } = useSkills();
   const [loading, setLoading] = useState(learningPath.length === 0);
 
@@ -32,10 +32,11 @@ const LearningPath = () => {
     }
     const run = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("generate-learning-path", {
-          body: { gaps: gapAnalysis.gaps, target_role: targetRole, existing_skills: skills.map(s => s.name) },
+        const data = await apiFetch("generate-learning-path", {
+          gaps: gapAnalysis.gaps,
+          target_role: targetRole,
+          existing_skills: skills.map(s => s.name),
         });
-        if (error) throw error;
         if (data?.steps) setLearningPath(data.steps);
       } catch (e) {
         console.error(e);
@@ -57,7 +58,6 @@ const LearningPath = () => {
     updateGapStatus(skillName, next as any);
     if (next === "done") {
       toast.success(`${skillName} marked as done! 🎉`);
-      // Check milestones
       const newDone = learningPath.filter(s => s.status === "done").length + 1;
       const pct = Math.round((newDone / totalSteps) * 100);
       if (pct >= 25 && pct < 50 && Math.round(((newDone - 1) / totalSteps) * 100) < 25) toast("🔥 25% done! Keep it up!");
@@ -104,7 +104,6 @@ const LearningPath = () => {
             <p className="text-muted-foreground mb-6">Prioritized by impact on getting hired + effort to close</p>
           </motion.div>
 
-          {/* Progress Bar */}
           <motion.div
             className="p-5 rounded-2xl bg-card border border-border mb-8"
             initial={{ opacity: 0 }}
@@ -133,7 +132,6 @@ const LearningPath = () => {
             )}
           </motion.div>
 
-          {/* Steps */}
           <div className="space-y-4">
             {learningPath.map((step, i) => {
               const StatusIcon = statusIcons[step.status];
@@ -150,7 +148,6 @@ const LearningPath = () => {
                   transition={{ delay: i * 0.08 }}
                 >
                   <div className="flex items-start gap-4">
-                    {/* Status toggle */}
                     <button
                       onClick={() => cycleStatus(step.skill_name, step.status)}
                       className={`mt-1 shrink-0 transition-colors ${statusColor} hover:text-accent`}
@@ -203,7 +200,6 @@ const LearningPath = () => {
             })}
           </div>
 
-          {/* Build Profile CTA */}
           <motion.div className="mt-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
             <Button
               onClick={() => toast("Profile Builder coming soon!")}

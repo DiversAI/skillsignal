@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, AlertTriangle, Sparkles, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { useSkills } from "@/lib/skillsContext";
-import { supabase } from "@/integrations/supabase/client";
+import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 
 const difficultyConfig = {
@@ -21,7 +21,7 @@ const importanceConfig = {
 };
 
 const GapAnalysis = () => {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const { skills, targetRole, gapAnalysis, setGapAnalysis, setLearningPath, updateGapStatus } = useSkills();
   const [loading, setLoading] = useState(!gapAnalysis);
   const [loadingPath, setLoadingPath] = useState(false);
@@ -34,10 +34,10 @@ const GapAnalysis = () => {
     }
     const run = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("analyze-gap", {
-          body: { skills: skills.map(s => ({ name: s.name, confidence: s.confidence, category: s.category })), target_role: targetRole },
+        const data = await apiFetch("analyze-gap", {
+          skills: skills.map(s => ({ name: s.name, confidence: s.confidence, category: s.category })),
+          target_role: targetRole,
         });
-        if (error) throw error;
         if (data) setGapAnalysis({ ...data, target_role: targetRole });
       } catch (e) {
         console.error(e);
@@ -53,10 +53,11 @@ const GapAnalysis = () => {
     if (!gapAnalysis) return;
     setLoadingPath(true);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-learning-path", {
-        body: { gaps: gapAnalysis.gaps, target_role: targetRole, existing_skills: skills.map(s => s.name) },
+      const data = await apiFetch("generate-learning-path", {
+        gaps: gapAnalysis.gaps,
+        target_role: targetRole,
+        existing_skills: skills.map(s => s.name),
       });
-      if (error) throw error;
       if (data?.steps) {
         setLearningPath(data.steps);
         navigate("/learning-path");
@@ -90,12 +91,10 @@ const GapAnalysis = () => {
       <Navbar />
       <div className="pt-24 pb-16 px-6">
         <div className="container max-w-3xl mx-auto">
-          {/* Back */}
           <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4 text-muted-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
           </Button>
 
-          {/* Match Score */}
           <motion.div
             className="p-8 rounded-2xl bg-card border border-border text-center mb-8"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -130,9 +129,7 @@ const GapAnalysis = () => {
             </p>
           </motion.div>
 
-          {/* Gap Map - Two Column */}
           <div className="grid md:grid-cols-2 gap-6 mb-8">
-            {/* Your Strengths */}
             <motion.div
               className="p-6 rounded-2xl bg-card border border-border"
               initial={{ opacity: 0, x: -20 }}
@@ -152,7 +149,6 @@ const GapAnalysis = () => {
               </div>
             </motion.div>
 
-            {/* Gaps to Close */}
             <motion.div
               className="p-6 rounded-2xl bg-card border border-border"
               initial={{ opacity: 0, x: 20 }}
@@ -165,7 +161,6 @@ const GapAnalysis = () => {
               <div className="space-y-2">
                 {gaps.map((g) => {
                   const diff = difficultyConfig[g.difficulty] || difficultyConfig.moderate;
-                  const imp = importanceConfig[g.importance] || importanceConfig.important;
                   return (
                     <div key={g.name} className="flex items-center justify-between px-3 py-2 rounded-lg bg-warning/5">
                       <div className="flex items-center gap-2">
@@ -180,7 +175,6 @@ const GapAnalysis = () => {
             </motion.div>
           </div>
 
-          {/* Differentiators */}
           {differentiators.length > 0 && (
             <motion.div
               className="p-6 rounded-2xl bg-secondary/50 border border-border mb-8"
@@ -202,7 +196,6 @@ const GapAnalysis = () => {
             </motion.div>
           )}
 
-          {/* CTA */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
             <Button
               onClick={handleLearningPath}

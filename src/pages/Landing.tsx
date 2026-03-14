@@ -1,11 +1,11 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, Upload, Link2, Keyboard, Sparkles, BarChart3, GraduationCap, Layers } from "lucide-react";
 import { useSkills } from "@/lib/skillsContext";
 import Navbar from "@/components/Navbar";
 
 const Landing = () => {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const { setEntryMethod } = useSkills();
 
   const handleEntry = (method: "resume" | "linkedin" | "manual") => {

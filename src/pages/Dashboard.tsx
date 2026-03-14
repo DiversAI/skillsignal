@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { BarChart3, GraduationCap, UserPlus, ArrowRight, Loader2, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import { useSkills, CategorizedSkill } from "@/lib/skillsContext";
-import { supabase } from "@/integrations/supabase/client";
+import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 
 const categoryLabels: Record<string, string> = {
@@ -29,7 +29,7 @@ const confidenceLabel: Record<string, string> = {
 };
 
 const Dashboard = () => {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const { skills, targetRole, gapAnalysis, setGapAnalysis } = useSkills();
   const [loadingGap, setLoadingGap] = useState(false);
 
@@ -45,10 +45,10 @@ const Dashboard = () => {
   const handleGapAnalysis = async () => {
     setLoadingGap(true);
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-gap", {
-        body: { skills: skills.map(s => ({ name: s.name, confidence: s.confidence, category: s.category })), target_role: targetRole },
+      const data = await apiFetch("analyze-gap", {
+        skills: skills.map(s => ({ name: s.name, confidence: s.confidence, category: s.category })),
+        target_role: targetRole,
       });
-      if (error) throw error;
       if (data) {
         setGapAnalysis({ ...data, target_role: targetRole });
         navigate("/gap-analysis");
