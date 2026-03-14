@@ -1,12 +1,12 @@
 import { useState, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, X, Plus, Loader2, ArrowRight, FileText, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
 import { useSkills, CategorizedSkill } from "@/lib/skillsContext";
-import { supabase } from "@/integrations/supabase/client";
+import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 
 const categoryLabels: Record<string, string> = {
@@ -24,7 +24,7 @@ const categoryColors: Record<string, string> = {
 };
 
 const SkillsInput = () => {
-  const navigate = useNavigate();
+  const [, navigate] = useLocation();
   const { entryMethod, skills, setSkills, targetRole, setTargetRole, setResumeText } = useSkills();
   const [loading, setLoading] = useState(false);
   const [manualInput, setManualInput] = useState("");
@@ -45,7 +45,6 @@ const SkillsInput = () => {
     setLoading(true);
 
     try {
-      // Read file as text (simplified — for PDF/DOCX we'll use the edge function)
       const reader = new FileReader();
       const text = await new Promise<string>((resolve, reject) => {
         if (ext === "txt") {
@@ -53,7 +52,6 @@ const SkillsInput = () => {
           reader.onerror = reject;
           reader.readAsText(file);
         } else {
-          // For PDF/DOCX, convert to base64 and send to edge function
           reader.onload = () => {
             const base64 = (reader.result as string).split(",")[1];
             resolve(base64);
@@ -63,11 +61,12 @@ const SkillsInput = () => {
         }
       });
 
-      const { data, error } = await supabase.functions.invoke("extract-resume-skills", {
-        body: { text: ext === "txt" ? text : undefined, file_base64: ext !== "txt" ? text : undefined, file_type: ext },
+      const data = await apiFetch("extract-resume-skills", {
+        text: ext === "txt" ? text : undefined,
+        file_base64: ext !== "txt" ? text : undefined,
+        file_type: ext,
       });
 
-      if (error) throw error;
       if (data?.skills) {
         const allSkills: CategorizedSkill[] = [];
         for (const cat of ["technical", "soft", "tools", "domain"] as const) {
@@ -94,10 +93,9 @@ const SkillsInput = () => {
     if (!linkedinUrl.trim()) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("extract-linkedin-skills", {
-        body: { url: linkedinUrl.trim() },
+      const data = await apiFetch("extract-linkedin-skills", {
+        url: linkedinUrl.trim(),
       });
-      if (error) throw error;
       if (data?.skills) {
         const allSkills: CategorizedSkill[] = [];
         for (const cat of ["technical", "soft", "tools", "domain"] as const) {

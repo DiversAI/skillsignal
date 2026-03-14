@@ -1,9 +1,9 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "wouter";
 import { Layers } from "lucide-react";
 
 const Navbar = () => {
-  const location = useLocation();
-  const isHome = location.pathname === "/";
+  const [location] = useLocation();
+  const isHome = location === "/";
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
